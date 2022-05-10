@@ -1,0 +1,69 @@
+name: deploy-eks
+
+on:
+  workflow_call:
+    inputs:
+      kube_namespace:
+        type: string
+        required: true
+        description: Kubernetes Namespace
+      deployment_name:
+        type: string
+        required: true
+        description: EKS deployment name
+      docker_repository:
+        type: string
+        required: true
+        description: Docker respository name
+      image_tag:
+        type: string
+        required: true
+        description: The docker image tag
+      kubectl_version:
+        type: string
+        required: false
+        description: The kubectl version
+        default: 'v1.24.0'
+      iam_version:
+        type: string
+        required: false
+        description: The iam version
+        default: '0.5.7'
+    secrets:
+      kube_config_data:
+        required: true
+        description: Kubernetes Config
+      aws_access_key_id:
+        required: true
+        description: AWS Access ID
+      aws_secret_access_key:
+        required: true
+        description: AWS Secret Key
+      docker_registry:
+        required: true
+        description: Docker registry
+
+env:
+  AWS_REGION: ap-southeast-2
+  KUBE_CONFIG_DATA: ${{ secrets.kube_config_data }}
+  KUBE_NAMESPACE: ${{ inputs.kube_namespace }}
+  KUBECTL_VERSION: ${{ inputs.kubectl_version }}
+  IAM_VERSION: ${{ inputs.iam_version }}
+
+jobs:
+  deploy_eks:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.aws_access_key_id }}
+          aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+          aws-region: ${{env.AWS_REGION }}
+
+      - name: Deploy To AWS EKS Cluster
+        uses: kodermax/kubectl-aws-eks@1.1.0
+        env:
+          IMAGE: ${{ secrets.docker_registry }}/${{ inputs.docker_repository }}:${{ inputs.image_tag }}
+        with:
+          args: set image -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }} ${{ inputs.deployment_name }}=${IMAGE}
