@@ -11,6 +11,11 @@ on:
         type: string
         required: true
         description: EKS deployment name
+      container_name:
+        type: string
+        required: false
+        description: Container name
+        default: ''
       docker_repository:
         type: string
         required: true
@@ -61,9 +66,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
           aws-region: ${{env.AWS_REGION }}
 
+      - name: Set Container Name
+        run: |
+          if ['${{ inputs.container_name }}' == '']; then
+              echo CONTAINER_NAME=${{ inputs.deployment_name }} >> $GITHUB_ENV
+          else
+              echo CONTAINER_NAME=${{ inputs.container_name }} >> $GITHUB_ENV
+          fi
+
       - name: Deploy To AWS EKS Cluster
         uses: kodermax/kubectl-aws-eks@1.1.0
         env:
           IMAGE: ${{ secrets.docker_registry }}/${{ inputs.docker_repository }}:${{ inputs.image_tag }}
         with:
-          args: set image -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }} ${{ inputs.deployment_name }}=${IMAGE}
+          args: set image -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }} $CONTAINER_NAME=${IMAGE}
