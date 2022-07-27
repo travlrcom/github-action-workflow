@@ -1,0 +1,41 @@
+name: cf-template-validate
+
+on:
+  workflow_call:
+    inputs:
+      script_command:
+        type: string
+        required: false
+        description: The script command
+        default: './validate-cf-templates.sh'
+      aws_region:
+        type: string
+        required: false
+        description: The AWS region
+        default: 'ap-southeast-2'
+    secrets:
+      role_to_assume:
+        required: true
+        description: The AWS role to assume
+
+jobs:
+  validate-cf-template:
+    name: Validate All Templates
+    runs-on: ubuntu-latest
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.role_to_assume }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Validating Template
+        shell: bash
+        run: ${{ inputs.script_command }}
