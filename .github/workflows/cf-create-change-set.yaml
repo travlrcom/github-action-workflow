@@ -1,0 +1,46 @@
+name: cf-create-change-set
+
+on:
+  workflow_call:
+    inputs:
+      script_command:
+        type: string
+        required: true
+        description: The script command
+      aws_region:
+        type: string
+        required: false
+        description: The AWS region
+        default: 'ap-southeast-2'
+      change_set_version:
+        type: string
+        required: true
+        description: The change set version
+    secrets:
+      role_to_assume:
+        required: true
+        description: The AWS role to assume
+
+jobs:
+  validate_create_change_set:
+    name: CF Validate and Create Change Set
+    runs-on: ubuntu-latest
+    # These permissions are needed to interact with GitHub's OIDC Token endpoint.
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.role_to_assume }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Create Change Set
+        env:
+          CHANGESET_VERSION: ${{ inputs.change_set_version }}
+        shell: bash
+        run: ${{ inputs.script_command }}
