@@ -29,6 +29,17 @@ on:
         required: false
         description: The iam version
         default: '0.5.7'
+      runner:
+        type: string
+        required: false
+        description: Self hosted runner label
+        default: "['ubuntu-20.04']"
+      check_rollout_status:
+        type: boolean
+        required: false
+        description: Add step to check rolled out status
+        default: false
+
     secrets:
       kube_config_data:
         required: true
@@ -52,7 +63,7 @@ env:
 
 jobs:
   deploy_eks:
-    runs-on: ubuntu-20.04
+    runs-on: ${{ fromJson(inputs.runner) }}
     steps:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -67,3 +78,9 @@ jobs:
           IMAGE: ${{ secrets.docker_registry }}/${{ inputs.docker_repository }}:${{ inputs.image_tag }}
         with:
           args: set image -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }} ${{ inputs.deployment_name }}=${IMAGE}
+
+      - name: Verify Deployment
+        if: ${{ inputs.check_rollout_status == true }}
+        uses: kodermax/kubectl-aws-eks@1.1.0
+        with:
+          args: rollout status -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }}
