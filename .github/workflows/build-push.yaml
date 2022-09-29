@@ -101,7 +101,7 @@ jobs:
           LABEL_BUILD_NUMBER: ${{ github.run_number }}
         run: |
           export BASE_IMAGE_NAME=$DOCKER_REGISTRY/$DOCKER_REPOSITORY
-          if [${{ inputs.suffix_image_tag }} == '']; then
+          if ['${{ inputs.suffix_image_tag }}' == '']; then
               export IMAGE_TAG=$DOCKER_TAG_PREFIX-$LABEL_BUILD_NUMBER
           else
               export IMAGE_TAG=$DOCKER_TAG_PREFIX-${{ inputs.suffix_image_tag }}
