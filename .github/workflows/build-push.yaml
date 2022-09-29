@@ -128,4 +128,3 @@ jobs:
         if: ${{ inputs.delete_docker_image == true }}
         run: |
           docker rmi $IMAGE_TAG_BUILD
-          docker rmi $(docker images --filter "dangling=true" -q --no-trunc)
