@@ -29,10 +29,10 @@ on:
         required: false
         description: Self hosted runner label
         default: "['ubuntu-20.04']"
-      delete_docker_image:
+      delete_pushed_image:
         type: boolean
         required: false
-        description: Add step to delete docker image
+        description: Add step to delete pushed docker image
         default: false
 
     secrets:
@@ -124,7 +124,7 @@ jobs:
           docker push $IMAGE_NAME
           docker push $IMAGE_TAG_BUILD
 
-      - name: Delete Docker Image
-        if: ${{ inputs.delete_docker_image == true }}
+      - name: Delete Pushed Docker Image
+        if: ${{ inputs.delete_pushed_image == true }}
         run: |
           docker rmi $IMAGE_TAG_BUILD
