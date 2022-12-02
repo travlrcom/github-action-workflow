@@ -23,7 +23,7 @@ on:
         type: string
         required: false
         description: The docker image tag
-        default: ''
+        default: ""
       runner:
         type: string
         required: false
@@ -108,6 +108,7 @@ jobs:
           fi
           echo IMAGE_NAME=$BASE_IMAGE_NAME:$DOCKER_TAG_PREFIX-latest >> $GITHUB_ENV
           echo IMAGE_TAG_BUILD=$BASE_IMAGE_NAME:$IMAGE_TAG >> $GITHUB_ENV
+          echo APP_VERSION=$IMAGE_TAG >> $GITHUB_ENV
           echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
 
       - name: Build Docker Image
