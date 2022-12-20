@@ -1,0 +1,70 @@
+name: deploy-cdk
+description: Install and run aws cdk deploy command
+inputs:
+  dotnet_version:
+    description: Dotnet version
+    required: false
+    default: "6.0"
+  node_version:
+    description: Node version
+    required: false
+    default: "18"
+  cdk_version:
+    description: AWS CDK version
+    required: false
+    default: "2"
+  stack_name:
+    description: CDK stack(s) name
+    required: true
+  aws_role_to_assume:
+    description: The aws role to run cdk
+    required: true
+  aws_region:
+    description: The aws region
+    required: false
+    default: ap-southeast-2
+  service_name:
+    description: Docker compose service
+    required: true
+
+runs:
+  using: composite
+  steps:
+
+    - name: Synthesize Template
+      uses: ./.git-composite-action/docker-compose/up
+      with:
+        service: ${{ inputs.service_name }}
+
+    - name: Change cdk.out permissions
+      shell: bash
+      run: sudo chmod -R 777 ./cdk.out
+
+    - name: Setup Dotnet
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ inputs.dotnet_version }}
+      env:
+        DOTNET_INSTALL_DIR: "./.dotnet"
+
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node_version }}
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        role-to-assume: ${{ inputs.aws_role_to_assume }}
+        aws-region: ${{ inputs.aws_region }}
+
+    - name: Setup AWS CDK
+      env:
+        CDK_VERSION: ${{ inputs.cdk_version }}
+      shell: bash
+      run: |
+        npm install -g aws-cdk@$CDK_VERSION
+
+    - name: Run CDK Deploy Command
+      shell: bash
+      run: cdk deploy ${{ inputs.stack_name }} --require-approval never --processed true --ci true
