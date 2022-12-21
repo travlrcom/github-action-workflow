@@ -34,9 +34,6 @@ on:
 
 env:
   AWS_REGION: ap-southeast-2
-  KUBE_CONFIG_DATA: ${{ secrets.kube_config_data }}
-  KUBECTL_VERSION: ${{ inputs.kubectl_version }}
-  IAM_VERSION: ${{ inputs.iam_version }}
 
 jobs:
   verify_deployment:
@@ -63,7 +60,7 @@ jobs:
 
       - name: Verify Deployment
         if: ${{ inputs.check_rollout_status == true }}
-        uses: ./.git-composite-action/aws/eks/run-kubectl@v1.0.4
+        uses: ./.git-composite-action/aws/eks/run-kubectl
         with:
           kube_context: ${{ inputs.kube_context }}
           kube_arg: rollout status -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }}

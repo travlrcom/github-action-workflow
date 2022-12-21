@@ -50,10 +50,7 @@ on:
 
 env:
   AWS_REGION: ap-southeast-2
-  KUBE_CONFIG_DATA: ${{ secrets.kube_config_data }}
   KUBE_NAMESPACE: ${{ inputs.kube_namespace }}
-  KUBECTL_VERSION: ${{ inputs.kubectl_version }}
-  IAM_VERSION: ${{ inputs.iam_version }}
 
 jobs:
   deploy_eks:
