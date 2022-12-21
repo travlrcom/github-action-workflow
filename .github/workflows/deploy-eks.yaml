@@ -79,7 +79,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Deploy To AWS EKS Cluster
-        uses: ./.git-composite-action/aws/eks/run-kubectl@v1.0.4
+        uses: ./.git-composite-action/aws/eks/run-kubectl
         env:
           IMAGE: ${{ secrets.docker_registry }}/${{ inputs.docker_repository }}:${{ inputs.image_tag }}
         with:
@@ -91,7 +91,7 @@ jobs:
 
       - name: Verify Deployment
         if: ${{ inputs.check_rollout_status == true }}
-        uses: ./.git-composite-action/aws/eks/run-kubectl@v1.0.4
+        uses: ./.git-composite-action/aws/eks/run-kubectl
         with:
           kube_context: ${{ inputs.kube_context }}
           kube_arg: rollout status -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }}
