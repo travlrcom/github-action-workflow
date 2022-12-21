@@ -35,9 +35,6 @@ on:
         default: false
 
     secrets:
-      kube_config_data:
-        required: true
-        description: Kubernetes Config
       aws_access_key_id:
         required: true
         description: AWS Access ID
