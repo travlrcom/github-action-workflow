@@ -1,4 +1,4 @@
-name: build-push-deploy
+name: build-push-deploy-eks
 
 on:
   workflow_call:
@@ -42,6 +42,10 @@ on:
         type: string
         required: true
         description: Kubernetes Namespace
+      kube_context:
+        type: string
+        required: true
+        description: Kubernetes Context
 
     secrets:
       gpr_username:
@@ -136,7 +140,7 @@ jobs:
       - name: Update Deployment Manifest
         uses: ./.git-composite-action/aws/eks/run-kubectl
         with:
-          kube_context: ${{ env.SERVICE }}
+          kube_context: ${{ env.kube_context }}
           kube_arg: set image -n ${{ inputs.kube_namespace }} deployment/${{ inputs.deployment_name }} ${{ inputs.deployment_name }}=${$IMAGE_TAG_BUILD}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
