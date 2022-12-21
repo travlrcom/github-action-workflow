@@ -1,0 +1,148 @@
+name: build-push-deploy
+
+on:
+  workflow_call:
+    inputs:
+      aspnet_environment:
+        type: string
+        required: true
+        description: Target ASPNETCORE_ENVIRONMENT
+      prefix_image_tag:
+        type: string
+        required: true
+        description: The docker image tag
+      service:
+        type: string
+        required: true
+        description: Service name
+      docker_repository:
+        type: string
+        required: true
+        description: Docker repository name
+      suffix_image_tag:
+        type: string
+        required: false
+        description: The docker image tag
+        default: ""
+      runner:
+        type: string
+        required: false
+        description: Self hosted runner label
+        default: "['ubuntu-20.04']"
+      delete_pushed_image:
+        type: boolean
+        required: false
+        description: Add step to delete pushed docker image
+        default: false
+      deployment_name:
+        type: string
+        required: true
+        description: EKS deployment name
+      kube_namespace:
+        type: string
+        required: true
+        description: Kubernetes Namespace
+
+    secrets:
+      gpr_username:
+        required: true
+        description: Github Username
+      gpr_token:
+        required: true
+        description: Github Token
+      aws_access_key_id:
+        required: true
+        description: AWS Access ID
+      aws_secret_access_key:
+        required: true
+        description: AWS Secret Key
+
+    outputs:
+      image_tag:
+        description: "Pushed image tag"
+        value: ${{ jobs.build_push_image.outputs.image_tag }}
+
+env:
+  SERVICE: ${{ inputs.service }}
+  AWS_REGION: ap-southeast-2
+  GPR_USERNAME: ${{ secrets.gpr_username }}
+  GPR_TOKEN: ${{ secrets.gpr_token  }}
+  DOCKER_REPOSITORY: ${{ inputs.docker_repository }}
+  ASPNETCORE_ENVIRONMENT: ${{ inputs.aspnet_environment }}
+
+jobs:
+  build_push_image:
+    runs-on: ${{ fromJson(inputs.runner) }}
+    outputs:
+      image_tag: ${{ steps.setting_env_variable.outputs.image_tag }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          submodules: "true"
+          token: ${{ secrets.gpr_token }}
+
+      - name: Checkout git-composite-action
+        uses: actions/checkout@v2
+        with:
+          repository: travlrcom/git-composite-action
+          ref: main
+          token: ${{ secrets.gpr_token }}
+          path: .git-composite-action
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.aws_access_key_id }}
+          aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
+          aws-region: ${{env.AWS_REGION }}
+
+      - name: Login To Amazon ECR
+        id: login_ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Setting Environment variable
+        id: setting_env_variable
+        env:
+          DOCKER_REGISTRY: ${{ steps.login_ecr.outputs.registry }}
+          DOCKER_TAG_PREFIX: ${{ inputs.prefix_image_tag }}
+          LABEL_BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          export BASE_IMAGE_NAME=$DOCKER_REGISTRY/$DOCKER_REPOSITORY
+          if ['${{ inputs.suffix_image_tag }}' == '']; then
+              export IMAGE_TAG=$DOCKER_TAG_PREFIX-$LABEL_BUILD_NUMBER
+          else
+              export IMAGE_TAG=$DOCKER_TAG_PREFIX-${{ inputs.suffix_image_tag }}
+          fi
+          echo IMAGE_NAME=$BASE_IMAGE_NAME:$DOCKER_TAG_PREFIX-latest >> $GITHUB_ENV
+          echo IMAGE_TAG_BUILD=$BASE_IMAGE_NAME:$IMAGE_TAG >> $GITHUB_ENV
+          echo APP_VERSION=$IMAGE_TAG >> $GITHUB_ENV
+          echo "image_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Build Docker Image
+        uses: ./.git-composite-action/docker-compose/build
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.aws_access_key_id }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.aws_secret_access_key }}
+        with:
+          service: ${{ env.SERVICE }}
+
+      - name: Push Docker Image
+        run: |
+          docker tag $IMAGE_NAME $IMAGE_TAG_BUILD
+          docker push $IMAGE_NAME
+          docker push $IMAGE_TAG_BUILD
+
+      - name: Update Deployment Manifest
+        uses: ./.git-composite-action/aws/eks/run-kubectl
+        with:
+          kube_context: ${{ env.SERVICE }}
+          kube_arg: set image -n ${{ inputs.kube_namespace }} deployment/${{ inputs.deployment_name }} ${{ inputs.deployment_name }}=${$IMAGE_TAG_BUILD}
+          aws_access_key_id: ${{ secrets.aws_access_key_id }}
+          aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
+          aws_default_region: ${{ env.AWS_REGION }}
+
+      - name: Delete Pushed Docker Image
+        if: ${{ inputs.delete_pushed_image == true }}
+        run: |
+          docker rmi $IMAGE_TAG_BUILD
