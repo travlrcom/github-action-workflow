@@ -6,7 +6,7 @@ on:
       kube_namespace:
         type: string
         required: true
-        description: Kubernetes Namespace
+        description: Kubernetes Namespace.
       deployment_name:
         type: string
         required: true
