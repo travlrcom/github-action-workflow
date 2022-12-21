@@ -59,6 +59,14 @@ jobs:
   deploy_eks:
     runs-on: ${{ fromJson(inputs.runner) }}
     steps:
+      - name: Checkout git-composite-action
+        uses: actions/checkout@v2
+        with:
+          repository: travlrcom/git-composite-action
+          ref: main
+          token: ${{ secrets.gpr_token }}
+          path: .git-composite-action
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
