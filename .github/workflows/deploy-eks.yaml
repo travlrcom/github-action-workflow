@@ -7,6 +7,10 @@ on:
         type: string
         required: true
         description: Kubernetes Namespace
+      kube_context:
+        type: string
+        required: true
+        description: Kubernetes Context
       deployment_name:
         type: string
         required: true
@@ -19,16 +23,6 @@ on:
         type: string
         required: true
         description: The docker image tag
-      kubectl_version:
-        type: string
-        required: false
-        description: The kubectl version
-        default: 'v1.24.0'
-      iam_version:
-        type: string
-        required: false
-        description: The iam version
-        default: '0.5.7'
       runner:
         type: string
         required: false
@@ -73,14 +67,22 @@ jobs:
           aws-region: ${{env.AWS_REGION }}
 
       - name: Deploy To AWS EKS Cluster
-        uses: kodermax/kubectl-aws-eks@1.1.0
+        uses: ./.git-composite-action/aws/eks/run-kubectl
         env:
           IMAGE: ${{ secrets.docker_registry }}/${{ inputs.docker_repository }}:${{ inputs.image_tag }}
         with:
-          args: set image -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }} ${{ inputs.deployment_name }}=${IMAGE}
+          kube_context: ${{ inputs.kube_context }}
+          kube_arg: set image -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }} ${{ inputs.deployment_name }}=${IMAGE}
+          aws_access_key_id: ${{ secrets.aws_access_key_id }}
+          aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
+          aws_default_region: ${{ env.AWS_REGION }}
 
       - name: Verify Deployment
         if: ${{ inputs.check_rollout_status == true }}
-        uses: kodermax/kubectl-aws-eks@1.1.0
+        uses: ./.git-composite-action/aws/eks/run-kubectl
         with:
-          args: rollout status -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }}
+          kube_context: ${{ inputs.kube_context }}
+          kube_arg: rollout status -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }}
+          aws_access_key_id: ${{ secrets.aws_access_key_id }}
+          aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
+          aws_default_region: ${{ env.AWS_REGION }}

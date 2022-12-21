@@ -7,20 +7,14 @@ on:
         type: string
         required: true
         description: Kubernetes Namespace
+      kube_context:
+        type: string
+        required: true
+        description: Kubernetes Context
       deployment_name:
         type: string
         required: true
         description: EKS deployment name
-      kubectl_version:
-        type: string
-        required: false
-        description: The kubectl version
-        default: 'v1.24.0'
-      iam_version:
-        type: string
-        required: false
-        description: The iam version
-        default: '0.5.7'
       runner:
         type: string
         required: false
@@ -56,6 +50,11 @@ jobs:
           aws-region: ${{env.AWS_REGION }}
 
       - name: Verify Deployment
-        uses: kodermax/kubectl-aws-eks@1.1.0
+        if: ${{ inputs.check_rollout_status == true }}
+        uses: ./.git-composite-action/aws/eks/run-kubectl
         with:
-          args: rollout status -n ${{ inputs.kube_namespace }} deployment/${{ inputs.deployment_name }}
+          kube_context: ${{ inputs.kube_context }}
+          kube_arg: rollout status -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }}
+          aws_access_key_id: ${{ secrets.aws_access_key_id }}
+          aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
+          aws_default_region: ${{ env.AWS_REGION }}
