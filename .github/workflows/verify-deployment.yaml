@@ -31,6 +31,9 @@ on:
       aws_secret_access_key:
         required: true
         description: AWS Secret Key
+      gpr_token:
+        required: true
+        description: Github Token
 
 env:
   AWS_REGION: ap-southeast-2

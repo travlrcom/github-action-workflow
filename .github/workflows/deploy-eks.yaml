@@ -47,6 +47,9 @@ on:
       docker_registry:
         required: true
         description: Docker registry
+      gpr_token:
+        required: true
+        description: Github Token
 
 env:
   AWS_REGION: ap-southeast-2
