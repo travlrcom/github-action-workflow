@@ -3,6 +3,11 @@ name: restart-eks-deployment
 on:
   workflow_call:
     inputs:
+      aws_region:
+        type: string
+        required: false
+        description: Aws Region
+        default: "ap-southeast-2"
       kube_context:
         type: string
         required: true
@@ -57,7 +62,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.aws_access_key_id }}
           aws-secret-access-key: ${{ secrets.aws_secret_access_key }}
-          aws-region: ${{env.AWS_REGION }}
+          aws-region: ${{ inputs.aws_region }}
 
       - name: Login To Amazon ECR
         id: login_ecr
@@ -70,7 +75,7 @@ jobs:
           kube_arg: rollout restart -n ${{ inputs.kube_namespace }} deployment/${{ inputs.deployment_name }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
-          aws_default_region: ${{ env.AWS_REGION }}
+          aws_default_region: ${{ inputs.aws_region }}
 
       - name: Verify EKS Deployment
         if: ${{ inputs.check_rollout_status == true }}
@@ -80,4 +85,4 @@ jobs:
           kube_arg: rollout status -n ${{ inputs.kube_namespace }} deployment/${{ inputs.deployment_name }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
-          aws_default_region: ${{ env.AWS_REGION }}
+          aws_default_region: ${{ inputs.aws_region }}
