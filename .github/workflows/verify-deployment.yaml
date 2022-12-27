@@ -59,11 +59,10 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Verify Deployment
-        if: ${{ inputs.check_rollout_status == true }}
         uses: ./.git-composite-action/aws/eks/run-kubectl
         with:
           kube_context: ${{ inputs.kube_context }}
-          kube_arg: rollout status -n ${KUBE_NAMESPACE} deployment/${{ inputs.deployment_name }}
+          kube_arg: rollout status -n ${{ inputs.kube_namespace }} deployment/${{ inputs.deployment_name }}
           aws_access_key_id: ${{ secrets.aws_access_key_id }}
           aws_secret_access_key: ${{ secrets.aws_secret_access_key }}
           aws_default_region: ${{ env.AWS_REGION }}
