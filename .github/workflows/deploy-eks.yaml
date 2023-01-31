@@ -57,7 +57,7 @@ jobs:
     runs-on: ${{ fromJson(inputs.runner) }}
     steps:
       - name: Checkout git-composite-action
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: travlrcom/git-composite-action
           ref: main
