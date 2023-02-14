@@ -4,25 +4,32 @@ on:
   workflow_call:
     inputs:
       chart-name:
+        type: string
         required: true
         description: Umbrella chart name
       run-dependency-update:
+        type: string        
         required: true
         description: Update helm dependency manifest
       service-name:
+        type: string        
         required: true
         description: The target service name
       service-image-tag:
+        type: string        
         required: true
         description: The new image tag of service name
       target-namespace:
+        type: string        
         required: true
         description: Target namespace (trav-taas)
       target-env:
+        type: string        
         required: true
         description: Supported values (dev,stg,uat,prd)
       # Optional Inputs
       aws-region:
+        type: string        
         required: false
         default: ap-southeast-2
         description: aws region (default ap-southeast-2)

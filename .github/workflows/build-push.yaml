@@ -35,6 +35,7 @@ on:
         description: Add step to delete pushed docker image
         default: false
       aws-region:
+        type: string        
         required: false
         default: ap-southeast-2
         description: aws region (default ap-southeast-2)        
@@ -57,7 +58,6 @@ on:
 
 env:
   SERVICE: ${{ inputs.service }}
-  AWS_REGION: ap-southeast-2
   GPR_USERNAME: ${{ secrets.gpr_username }}
   GPR_TOKEN: ${{ secrets.gpr_token  }}
   DOCKER_REPOSITORY: ${{ inputs.docker_repository }}

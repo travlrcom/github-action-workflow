@@ -4,28 +4,35 @@ on:
   workflow_call:
     inputs:
       release:
+        type: string
         required: true
         description: Umbrella chart name      
       chart-name:
+        type: string
         required: true
         description: The target service name
       target-namespace:
         required: true
+        type: string
         description: Target namespace (trav-taas)
       target-env:
         required: true
+        type: string        
         description: Supported values (dev,stg,uat,prd)
 
 
       # Optional Inputs
       aws-region:
         required: false
+        type: string        
         default: ap-southeast-2
         description: aws region (default ap-southeast-2)
       value-file1:
+        type: string        
         required: false
         description: "Additional value1"
       value-file2:
+        type: string        
         required: false
         description: "Additional value2"
       runner:
