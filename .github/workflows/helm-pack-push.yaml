@@ -18,13 +18,13 @@ on:
         default: "['ubuntu-20.04']"
       
       
-      secrets:
-        github-token:
-          required: true
-          description: Github Token
-        aws-role:
-          required: true
-          description: AWS Assumed Role
+    secrets:
+      github-token:
+        required: true
+        description: Github Token
+      aws-role:
+        required: true
+        description: AWS Assumed Role
 
     outputs:
       is_chart_changed:

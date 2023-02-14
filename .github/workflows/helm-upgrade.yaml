@@ -52,16 +52,16 @@ on:
         default: false     
       
       
-      secrets:
-        kube-config:
-          required: true
-          description: base64 of kubernetes configuration
-        github-token:
-          required: true
-          description: The github token used to fetch ci environment
-        aws-role:
-          required: true
-          description: AWS Assumed Role
+    secrets:
+      kube-config:
+        required: true
+        description: base64 of kubernetes configuration
+      github-token:
+        required: true
+        description: The github token used to fetch ci environment
+      aws-role:
+        required: true
+        description: AWS Assumed Role
 
 jobs:
   pack_push_charts:

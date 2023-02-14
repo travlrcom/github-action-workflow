@@ -44,13 +44,13 @@ on:
         description: Self hosted runner label
         default: "['ubuntu-20.04']"
       
-      secrets:
-        github-token:
-          required: true
-          description: The github token used to fetch ci environment
-        aws-role:
-          required: true
-          description: AWS Assumed Role
+    secrets:
+      github-token:
+        required: true
+        description: The github token used to fetch ci environment
+      aws-role:
+        required: true
+        description: AWS Assumed Role
 
 jobs:
   pack_push_charts:
