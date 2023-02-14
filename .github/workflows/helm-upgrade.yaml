@@ -82,13 +82,13 @@ jobs:
           github-token:  ${{ secrets.github-token }}
           kube-config-data:  ${{ secrets.kube-config }}
           release: ${{ inputs.release }}
-          namespace: ${{ inputs.namespace }}
+          namespace: ${{ inputs.target-namespace }}
           value-file1: ${{ inputs.value-file1 }}
           value-file2: ${{ inputs.value-file2 }}          
-          chart: env/${{ inputs.target-env }}/${{ inputs.namespace }}/${{ inputs.chart-name }}
+          chart: env/${{ inputs.target-env }}/${{ inputs.target-namespace }}/${{ inputs.chart-name }}
 
       - name: Send Success Notification
-        if:  success() && ${{ inputs.notify-on-success }}
+        if: success() && ${{ inputs.notify-on-success }}
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
