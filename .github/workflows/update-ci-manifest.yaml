@@ -1,0 +1,80 @@
+name: Update CI Manifest
+
+on:
+  workflow_call:
+    inputs:
+      chart-name:
+        required: true
+        description: Umbrella chart name
+      run-dependency-update:
+        required: true
+        description: Update helm dependency manifest
+      service-name:
+        required: true
+        description: The target service name
+      service-image-tag:
+        required: true
+        description: The new image tag of service name
+      target-namespace:
+        required: true
+        description: Target namespace (trav-taas)
+      target-env:
+        required: true
+        description: Supported values (dev,stg,uat,prd)
+      # Optional Inputs
+      aws-region:
+        required: false
+        default: ap-southeast-2
+        description: aws region (default ap-southeast-2)
+      notification-channel:
+        type: string
+        required: false
+        description: The alert notification channel
+        default: "alert-information"        
+      runner:
+        type: string
+        required: false
+        description: Self hosted runner label
+        default: "['ubuntu-20.04']"
+      
+      secrets:
+        github-token:
+          required: true
+          description: The github token used to fetch ci environment
+        aws-role:
+          required: true
+          description: AWS Assumed Role
+
+jobs:
+  pack_push_charts:
+    runs-on: ${{ fromJson(inputs.runner) }}
+    steps:
+    - name: Checkout git-composite-action
+      uses: actions/checkout@v3
+      with:
+        repository: travlrcom/git-composite-action
+        ref: v1.3.0
+        token:  ${{ secrets.github-token }}
+        path: .git-composite-action
+        
+    - name: Update CI Manifest
+      uses: ./.git-composite-action/helm/update-ci-manifest
+      with:
+        aws-role: ${{ secrets.aws-role }}
+        aws-region: ${{ inputs.aws-region }}
+        github-token: ${{ secrets.github-token }}
+        chart-name: ${{ inputs.chart-name }}
+        run-dependency-update: ${{ inputs.run-dependency-update }}
+        service-name: ${{ inputs.service-name }}
+        service-image-tag: ${{ inputs.service-image-tag }}
+        target-env: ${{ inputs.target-env }}
+        target-namespace: ${{ inputs.target-namespace }}
+
+    - name: Send Configuration Required Notification
+      if:  ${{ inputs.run-dependency-update == 'true'}}
+      uses: ./.git-composite-action/slack/send-notif
+      with:
+        aws-role: ${{ secrets.aws-role }}
+        subject: ":warning: [GITHUB] Service *${{ inputs.service-name }}* Require Config Update :warning:"
+        channel: ${{ inputs.notification-channel}}
+        

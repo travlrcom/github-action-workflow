@@ -1,0 +1,68 @@
+name: pack and push helm charts
+
+on:
+  workflow_call:
+    inputs:
+      chart-dir:
+        type: string
+        required: true
+        description: chart-directory
+      service-name:
+        type: string
+        required: true
+        description: service name
+      runner:
+        type: string
+        required: false
+        description: Self hosted runner label
+        default: "['ubuntu-20.04']"
+      
+      
+      secrets:
+        github-token:
+          required: true
+          description: Github Token
+        aws-role:
+          required: true
+          description: AWS Assumed Role
+
+    outputs:
+      is_chart_changed:
+        description: "Is chart is changed"
+        value: ${{ jobs.pack_push_charts.outputs.is_chart_changed }}
+
+
+jobs:
+  pack_push_charts:
+    runs-on: ${{ fromJson(inputs.runner) }}
+    outputs:
+      is_chart_changed: ${{ steps.detect_chart.outputs.chart_changed }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Detect Chart Changes
+        id: detect_chart
+        run: |
+          git show --oneline --name-only | grep "${CHART_DIRECTORY}" &&
+          export CHART_CHANGED=true || export CHART_CHANGED=false
+          echo chart_changed=$CHART_CHANGED >> $GITHUB_OUTPUT
+
+      - name: Checkout git-composite-action
+        if:  ${{ steps.detect_chart.outputs.chart_changed == 'true' }}
+        uses: actions/checkout@v3
+        with:
+          repository: travlrcom/git-composite-action
+          ref: v1.3.0
+          token: ${{ secrets.github-token }}
+          path: .git-composite-action
+          
+      - name: Pack And Push Charts
+        if:  ${{ steps.detect_chart.outputs.chart_changed == 'true' }}
+        uses: ./.git-composite-action/helm/pack-push-chart
+        with:
+          app-version: ${{ github.sha }}
+          aws-role: ${{ secrets.aws-role }}
+          chart-directory: ${{ inputs.chart-dir }}
