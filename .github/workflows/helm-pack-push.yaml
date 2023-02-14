@@ -46,7 +46,7 @@ jobs:
       - name: Detect Chart Changes
         id: detect_chart
         run: |
-          git show --oneline --name-only | grep "${CHART_DIRECTORY}" &&
+          git show --oneline --name-only | grep "${{inputs.chart-dir}}" &&
           export CHART_CHANGED=true || export CHART_CHANGED=false
           echo chart_changed=$CHART_CHANGED >> $GITHUB_OUTPUT
 
