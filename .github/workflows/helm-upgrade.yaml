@@ -93,7 +93,7 @@ jobs:
           chart: env/${{ inputs.target-env }}/${{ inputs.target-namespace }}/${{ inputs.chart-name }}
 
       - name: Send Success Notification
-        if: success() && ${{ inputs.notify-on-success == true }}
+        if: success() && inputs.notify-on-success
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
@@ -101,7 +101,7 @@ jobs:
           channel: ${{ inputs.notification-channel }}
 
       - name: Send Fail Notification
-        if:  failure() && ${{ inputs.notify-on-fail == true }}
+        if:  failure() && inputs.notify-on-fail
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
