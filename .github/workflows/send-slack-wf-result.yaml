@@ -3,6 +3,14 @@ name: Slack Send Workflow Result Notification
 on:
   workflow_call:
     inputs:
+      send-on-success:
+        type: boolean
+        required: false
+        default: false
+      send-on-failure:
+        type: boolean
+        required: false
+        default: false        
       notification-channel:
         type: string
         required: false
@@ -27,9 +35,7 @@ on:
       aws-role:
         required: true
         description: AWS Assumed Role    
-env:
-  IS_SUCCESS: ${{ success() }}
-  IS_FAILED: ${{ failure() }}
+
 jobs:
   send-slack-wf-result:
     runs-on: ${{ fromJson(inputs.runner) }}
@@ -49,7 +55,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
          
       - name: Send Success Notification
-        if: ${{ env.IS_SUCCESS == 'true' }}
+        if: ${{ inputs.send-on-success }}
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
@@ -57,7 +63,7 @@ jobs:
           channel: ${{ inputs.notification-channel }}
 
       - name: Send Fail Notification
-        if: ${{ env.IS_FAILURE == 'true' }}
+        if: ${{ inputs.send-on-failure }}
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
