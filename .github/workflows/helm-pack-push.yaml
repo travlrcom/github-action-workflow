@@ -7,10 +7,6 @@ on:
         type: string
         required: true
         description: chart-directory
-      service-name:
-        type: string
-        required: true
-        description: service name
       runner:
         type: string
         required: false
