@@ -53,7 +53,7 @@ on:
         description: AWS Assumed Role
 
 jobs:
-  pack_push_charts:
+  update-ci-manifest:
     runs-on: ${{ fromJson(inputs.runner) }}
     steps:
     - name: Checkout git-composite-action
