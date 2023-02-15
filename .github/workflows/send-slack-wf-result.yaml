@@ -28,7 +28,7 @@ on:
         description: AWS Assumed Role    
 
 jobs:
-  upgrade-helm-deployment:
+  send-slack-wf-result:
     runs-on: ${{ fromJson(inputs.runner) }}
     steps:
       - name: Configure AWS credentials
