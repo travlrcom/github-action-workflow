@@ -6,7 +6,7 @@ on:
       release:
         type: string
         required: true
-        description: Umbrella chart name      
+        description: Umbrella chart name
       chart-name:
         type: string
         required: true
@@ -17,22 +17,22 @@ on:
         description: Target namespace (trav-taas)
       target-env:
         required: true
-        type: string        
+        type: string
         description: Supported values (dev,stg,uat,prd)
 
 
       # Optional Inputs
       aws-region:
         required: false
-        type: string        
+        type: string
         default: ap-southeast-2
         description: aws region (default ap-southeast-2)
       value-file1:
-        type: string        
+        type: string
         required: false
         description: "Additional value1"
       value-file2:
-        type: string        
+        type: string
         required: false
         description: "Additional value2"
       runner:
@@ -40,22 +40,6 @@ on:
         required: false
         description: Self hosted runner label
         default: "['ubuntu-20.04']"
-      notify-on-success:
-        type: boolean
-        required: false
-        description: Send notification on success
-        default: false
-      notify-on-fail:
-        type: boolean
-        required: false
-        description: Send notification on fail
-        default: false
-      notification-channel:
-        type: string
-        required: false
-        description: Target slack channel
-        default: alert-information
-    
     
     secrets:
       kube-config:
@@ -84,26 +68,10 @@ jobs:
         uses: ./.git-composite-action/helm/upgrade
         with:
           aws-role: ${{ secrets.aws-role }}
-          github-token:  ${{ secrets.github-token }}
-          kube-config-data:  ${{ secrets.kube-config }}
+          github-token: ${{ secrets.github-token }}
+          kube-config-data: ${{ secrets.kube-config }}
           release: ${{ inputs.release }}
           namespace: ${{ inputs.target-namespace }}
           value-file1: ${{ inputs.value-file1 }}
-          value-file2: ${{ inputs.value-file2 }}          
+          value-file2: ${{ inputs.value-file2 }}
           chart: env/${{ inputs.target-env }}/${{ inputs.target-namespace }}/${{ inputs.chart-name }}
-
-      - name: Send Success Notification
-        if: success() && inputs.notify-on-success
-        uses: ./.git-composite-action/slack/send-notif
-        with:
-          aws-role: ${{ secrets.aws-role }}
-          subject: ":beers: [GITHUB] Service *${{ inputs.release }}* Successfully Deployed :beers:"
-          channel: ${{ inputs.notification-channel }}
-
-      - name: Send Fail Notification
-        if:  failure() && inputs.notify-on-fail
-        uses: ./.git-composite-action/slack/send-notif
-        with:
-          aws-role: ${{ secrets.aws-role }}
-          subject: ":rotating_light: [GITHUB] Service *${{ inputs.release }}* Deployment Failed :rotating_light:"
-          channel: ${{ inputs.notification-channel }}

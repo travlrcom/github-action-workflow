@@ -1,0 +1,54 @@
+name: Slack Send Workflow Result Notification
+
+on:
+  workflow_call:
+    inputs:
+      notification-channel:
+        type: string
+        required: false
+        description: Target slack channel
+        default: alert-information
+      aws-region:
+        required: false
+        type: string
+        default: ap-southeast-2
+        description: aws region (default ap-southeast-2)        
+  
+      runner:
+        type: string
+        required: false
+        description: Self hosted runner label
+        default: "['ubuntu-20.04']"
+    secrets:
+      github-token:
+        required: true
+        description: The github token used to fetch ci environment
+      aws-role:
+        required: true
+        description: AWS Assumed Role    
+
+jobs:
+  upgrade-helm-deployment:
+    runs-on: ${{ fromJson(inputs.runner) }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.aws-role}}
+          aws-region: ${{ inputs.aws-region }}
+         
+      - name: Send Success Notification
+        if: ${{ success() }}
+        uses: ./.git-composite-action/slack/send-notif
+        with:
+          aws-role: ${{ secrets.aws-role }}
+          subject: ":beers: [GITHUB] Service *${{ github.workflow }}* Successfully Completed :beers:"
+          channel: ${{ inputs.notification-channel }}
+
+      - name: Send Fail Notification
+        if: ${{ failure()  }}
+        uses: ./.git-composite-action/slack/send-notif
+        with:
+          aws-role: ${{ secrets.aws-role }}
+          subject: ":rotating_light: [GITHUB] Service *${{ github.workflow }}* Deployment Failed :rotating_light:"
+          channel: ${{ inputs.notification-channel }}
