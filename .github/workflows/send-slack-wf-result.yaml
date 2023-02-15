@@ -27,7 +27,9 @@ on:
       aws-role:
         required: true
         description: AWS Assumed Role    
-
+env:
+  IS_SUCCESS: ${{ success() }}
+  IS_FAILED: ${{ failure() }}
 jobs:
   send-slack-wf-result:
     runs-on: ${{ fromJson(inputs.runner) }}
@@ -47,7 +49,7 @@ jobs:
           aws-region: ${{ inputs.aws-region }}
          
       - name: Send Success Notification
-        if: ${{ success() }}
+        if: ${{ env.IS_SUCCESS == 'true' }}
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
@@ -55,7 +57,7 @@ jobs:
           channel: ${{ inputs.notification-channel }}
 
       - name: Send Fail Notification
-        if: ${{ failure()  }}
+        if: ${{ env.IS_FAILURE == 'true' }}
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
