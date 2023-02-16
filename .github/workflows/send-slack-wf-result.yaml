@@ -59,7 +59,7 @@ jobs:
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
-          subject: ":beers: [GITHUB] Service *${{ github.workflow }}* Successfully Completed :beers:"
+          subject: ":beers: [GITHUB] Deploy Success: *${{ github.workflow }}*  :beers:"
           channel: ${{ inputs.notification-channel }}
 
       - name: Send Fail Notification
@@ -67,5 +67,5 @@ jobs:
         uses: ./.git-composite-action/slack/send-notif
         with:
           aws-role: ${{ secrets.aws-role }}
-          subject: ":rotating_light: [GITHUB] Service *${{ github.workflow }}* Deployment Failed :rotating_light:"
+          subject: ":rotating_light: [GITHUB] Deploy Failed: *${{ github.workflow }}* :rotating_light:"
           channel: ${{ inputs.notification-channel }}
