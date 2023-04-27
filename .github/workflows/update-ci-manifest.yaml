@@ -65,6 +65,7 @@ jobs:
         path: .git-composite-action
         
     - name: Update CI Manifest
+      id: update_ci_manifest
       uses: ./.git-composite-action/helm/update-ci-manifest
       with:
         aws-role: ${{ secrets.aws-role }}
@@ -78,7 +79,7 @@ jobs:
         target-namespace: ${{ inputs.target-namespace }}
 
     - name: Send Configuration Required Notification
-      if:  ${{ inputs.run-dependency-update == 'true'}}
+      if:  ${{ inputs.run-dependency-update == 'true' && steps.update_ci_manifest.outputs.autosync_disabled == 'true' }}
       uses: ./.git-composite-action/slack/send-notif
       with:
         aws-role: ${{ secrets.aws-role }}
