@@ -1,0 +1,59 @@
+name: set-auto-promote
+
+on:
+  workflow_call:
+    inputs:
+      chart-name:
+        type: string
+        required: true
+        description: Umbrella chart name
+      enable-auto-promotion:
+        type: boolean
+        required: true
+        description: The autopromote value
+      service-name:
+        type: string        
+        required: true
+        description: The target service name
+      target-namespace:
+        type: string        
+        required: true
+        description: Target namespace (trav-taas)
+      target-env:
+        type: string        
+        required: true
+        description: Supported values (dev,stg,uat,prd)
+      runner:
+        type: string
+        required: false
+        description: Self hosted runner label
+        default: "['ubuntu-20.04']"
+      
+    secrets:
+      github-token:
+        required: true
+        description: The github token used to fetch ci environment
+
+jobs:
+ setup-auto-promote:
+    runs-on: ${{ fromJson(inputs.runner) }}
+    steps:
+    - name: Checkout git-composite-action
+      uses: actions/checkout@v3
+      with:
+        repository: travlrcom/git-composite-action
+        ref: v4
+        token:  ${{ secrets.github-token }}
+        path: .git-composite-action
+        
+    - name: Setup Auto Promote Value
+      uses: ./.git-composite-action/helm/set-auto-promote
+      with:
+        github-token: ${{ secrets.github-token }}
+        chart-name: ${{ inputs.chart-name }}
+        enable-auto-promotion: ${{ inputs.enable-auto-promotion }}
+        service-name: ${{ inputs.service-name }}
+        target-namespace: ${{ inputs.target-namespace }}
+        target-env: ${{ inputs.target-env }}
+        
+
