@@ -12,6 +12,11 @@ on:
         required: false
         description: Self hosted runner label
         default: "['ubuntu-20.04']"
+      aws-region:
+        type: string
+        required: false
+        default: ap-southeast-2
+        description: aws region (default ap-southeast-2)
 
     secrets:
       github-token:
@@ -36,9 +41,22 @@ jobs:
           token: ${{ secrets.github-token }}
           path: .git-composite-action
 
-      - name: Abort All Argo Rollout
-        uses: ./.git-composite-action/aws/eks/argo-rollout-abort
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-role: ${{ secrets.aws-role }}
-          kube-config-data: ${{ secrets.kube-config-data }}
-          namespace: ${{ inputs.namespace }}
+          role-to-assume: ${{ secrets.aws-role }}
+          aws-region: ${{ inputs.aws-region }}
+          
+      - name: Login To Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1.5.3
+        
+      - name: Abort All Argo Rollout
+        shell: bash
+        env:
+          IMAGE_NAME: 269461048441.dkr.ecr.ap-southeast-2.amazonaws.com/travlr-ci:1.0.0-kube-argo-rollout-abort
+        run: |
+          docker run --rm \
+          -e "AWS_DEFAULT_REGION" -e "AWS_ACCESS_KEY_ID" -e "AWS_SECRET_ACCESS_KEY" -e "AWS_SESSION_TOKEN" \
+          -e KUBECONFIG_DATA=${{ secrets.kube-config-data }} \
+          -e NAMESPACE=${{ inputs.namespace }} \
+          $IMAGE_NAME
