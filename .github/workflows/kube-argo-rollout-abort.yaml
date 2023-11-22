@@ -19,9 +19,6 @@ on:
         description: aws region (default ap-southeast-2)
 
     secrets:
-      github-token:
-        required: true
-        description: Github Token
       aws-role:
         required: true
         description: AWS role to assume
@@ -33,21 +30,13 @@ jobs:
   argo-rollout-abort:
     runs-on: ${{ fromJson(inputs.runner) }}
     steps:
-      - name: Checkout git-composite-action
-        uses: actions/checkout@v3
-        with:
-          repository: travlrcom/git-composite-action
-          ref: v4
-          token: ${{ secrets.github-token }}
-          path: .git-composite-action
-
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: ${{ secrets.aws-role }}
           aws-region: ${{ inputs.aws-region }}
           
-      - name: Login To Amazon ECR
+      - name: Login to Amazon ECR
         uses: aws-actions/amazon-ecr-login@v1.5.3
         
       - name: Abort All Argo Rollout
