@@ -31,7 +31,7 @@ jobs:
     runs-on: ${{ fromJson(inputs.runner) }}
     steps:
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.aws-role }}
           aws-region: ${{ inputs.aws-region }}
