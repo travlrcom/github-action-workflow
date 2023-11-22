@@ -1,0 +1,44 @@
+name: Abort All Argo Rollout
+
+on:
+  workflow_call:
+    inputs:
+      namespace:
+        type: string
+        required: true
+        description: Namespace for rollout abort
+      runner:
+        type: string
+        required: false
+        description: Self hosted runner label
+        default: "['ubuntu-20.04']"
+
+    secrets:
+      github-token:
+        required: true
+        description: Github Token
+      aws-role:
+        required: true
+        description: AWS role to assume
+      kube-config-data:
+        required: true
+        description: Base 64 kube config data
+
+jobs:
+  argo-rollout-abort:
+    runs-on: ${{ fromJson(inputs.runner) }}
+    steps:
+      - name: Checkout git-composite-action
+        uses: actions/checkout@v3
+        with:
+          repository: travlrcom/git-composite-action
+          ref: v4
+          token: ${{ secrets.github-token }}
+          path: .git-composite-action
+
+      - name: Abort All Argo Rollout
+        uses: ./.git-composite-action/aws/eks/argo-rollout-abort
+        with:
+          aws-role: ${{ secrets.aws-role }}
+          kube-config-data: ${{ secrets.kube-config-data }}
+          namespace: ${{ inputs.namespace }}
