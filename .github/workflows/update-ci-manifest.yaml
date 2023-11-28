@@ -43,7 +43,12 @@ on:
         required: false
         description: Self hosted runner label
         default: "['ubuntu-20.04']"
-      
+      target-app-name:
+        type: string
+        required: false
+        description: "Fill in this value when your helm chart contains more than one docker image"
+        default: ""
+
     secrets:
       github-token:
         required: true
@@ -77,6 +82,7 @@ jobs:
         service-image-tag: ${{ inputs.service-image-tag }}
         target-env: ${{ inputs.target-env }}
         target-namespace: ${{ inputs.target-namespace }}
+        target-app-name: ${{ inputs.target-app-name }}
 
     - name: Send Configuration Required Notification
       if:  ${{ inputs.run-dependency-update == 'true' && steps.update_ci_manifest.outputs.autosync_disabled == 'true' }}
